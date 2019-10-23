@@ -30,8 +30,8 @@ struct TargetIterator
 
 	TargetIterator(const DpTarget *subject_begin, const DpTarget *subject_end) :
 		next(0),
-		n_targets(int(subject_end - subject_begin)),
-		subject_begin(subject_begin)
+		n_targets(int(subject_end - subject_begin))//,
+		//subject_begin(subject_begin)
 	{
 		for (; next < std::min(_n, n_targets); ++next) {
 			pos[next] = 0;
@@ -92,6 +92,7 @@ struct TargetIterator
 	}
 #endif
 
+#ifdef __SSSE3__
 	__m128i seq_vector() const {
 		uint8_t s[16];
 		for (int i = 0; i < active.size(); ++i) {
@@ -100,6 +101,16 @@ struct TargetIterator
 		}
 		return _mm_loadu_si128((const __m128i*)s);
 	}
+#else
+	uint64_t seq_vector() const {
+		uint64_t dst = 0;
+		for (int i = 0; i < active.size(); ++i) {
+			const int channel = active[i];
+			dst |= uint64_t((*this)[channel]) << (16 * channel);
+		}
+		return dst;
+	}
+#endif
 
 	bool init_target(int i, int channel)
 	{
@@ -160,12 +171,15 @@ struct TargetBuffer
 			return value_traits.mask_char;
 	}
 
-#ifdef DP_STAT
-	__m128i seq_vector()
-#else
-	__m128i seq_vector() const
-#endif	
-	{
+
+#ifdef __SSSE3__
+
+    #ifdef DP_STAT
+        __m128i seq_vector()
+    #else
+        __m128i seq_vector() const
+    #endif	
+    {
 		uint8_t s[16];
 		for (int i = 0; i < active.size(); ++i) {
 			const int channel = active[i];
@@ -173,6 +187,21 @@ struct TargetBuffer
 		}
 		return _mm_loadu_si128((const __m128i*)s);
 	}
+#else
+    #ifdef DP_STAT
+        uint64_t seq_vector()
+    #else
+        uint64_t seq_vector() const
+    #endif	
+    {
+		uint64_t dst = 0;
+		for (int i = 0; i < active.size(); ++i) {
+			const int channel = active[i];
+			dst |= uint64_t((*this)[channel]) << (16 * channel);
+		}
+		return dst;
+	}
+#endif
 
 	bool init_target(int i, int channel)
 	{

@@ -1,5 +1,5 @@
-gcc -c -O3 -DNDEBUG src/blast/sm_blosum45.c src/blast/sm_blosum50.c src/blast/sm_blosum62.c src/blast/sm_blosum80.c src/blast/sm_blosum90.c src/blast/sm_pam30.c src/blast/sm_pam70.c src/blast/sm_pam250.c
-g++ -std=gnu++11 -DNDEBUG -O3 -Wno-deprecated-declarations $1 $2 $3 \
+emcc -c -O3 -DNDEBUG src/blast/sm_blosum45.c src/blast/sm_blosum50.c src/blast/sm_blosum62.c src/blast/sm_blosum80.c src/blast/sm_blosum90.c src/blast/sm_pam30.c src/blast/sm_pam70.c src/blast/sm_pam250.c
+em++ -std=gnu++11 -DNDEBUG -O2 -Wno-deprecated-declarations $1 $2 $3 \
   sm*.o \
   src/run/main.cpp \
   src/basic/config.cpp \
@@ -41,7 +41,6 @@ g++ -std=gnu++11 -DNDEBUG -O3 -Wno-deprecated-declarations $1 $2 $3 \
   src/basic/masking.cpp \
   src/dp/swipe/swipe.cpp \
   src/dp/banded_sw.cpp \
-  src/data/sorted_list.cpp \
   src/data/seed_set.cpp \
   src/util/simd.cpp \
   src/output/taxon_format.cpp \
@@ -69,7 +68,6 @@ g++ -std=gnu++11 -DNDEBUG -O3 -Wno-deprecated-declarations $1 $2 $3 \
   src/data/taxonomy_nodes.cpp \
   src/util/algo/MurmurHash3.cpp \
   src/search/stage0.cpp \
-  src/util/memory/memory_pool.cpp \
   src/data/seed_array.cpp \
   src/output/paf_format.cpp \
   src/util/system/system.cpp \
@@ -83,4 +81,4 @@ g++ -std=gnu++11 -DNDEBUG -O3 -Wno-deprecated-declarations $1 $2 $3 \
   src/util/math/sparse_matrix.cpp \
   src/lib/tantan/LambdaCalculator.cc \
   src/data/taxonomy_filter.cpp \
--lz -lpthread -o diamond
+-lz -s USE_ZLIB=1 -s WASM=1 -o diamond.html

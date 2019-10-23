@@ -51,7 +51,13 @@ void show_cbs();
 void simulate_seqs();
 void benchmark();
 
-int main(int ac, const char* av[])
+extern "C" {
+    int square(int n) {
+       return n * n;
+    }
+}
+
+extern "C" int main(int ac, const char* av[])
 {
 	try {
 		check_simd();

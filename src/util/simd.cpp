@@ -19,6 +19,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "simd.h"
 #include "log_stream.h"
 
+
+#ifdef __SSE2__
 #ifdef _WIN32
 #define cpuid(info,x)    __cpuidex(info,x,0)
 #else
@@ -32,6 +34,7 @@ inline void cpuid(int CPUInfo[4], int InfoType) {
 		"a" (InfoType), "c" (0)
 		);
 }
+#endif
 #endif
 
 void check_simd()

@@ -8,6 +8,28 @@ option(STATIC_LIBSTDC++ "STATIC_LIBSTDC++" OFF)
 option(SSSE3 "SSSE3" OFF)
 option(POPCNT "POPCNT" OFF)
 
+if (EMSCRIPTEN)
+  # use prebuilt zlib
+  set(ZLIB_FOUND 1)
+  set(ZLIB_LIBRARIES)
+  set(ZLIB_INCLUDE_DIR)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -s ALLOW_MEMORY_GROWTH=1 -s MEMFS_APPEND_TO_TYPED_ARRAYS=1 -s USE_ZLIB=1  -s EXTRA_EXPORTED_RUNTIME_METHODS=\"['FS','cwrap']\"")
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -s ALLOW_MEMORY_GROWTH=1 -s MEMFS_APPEND_TO_TYPED_ARRAYS=1 -s USE_ZLIB=1 -s EXTRA_EXPORTED_RUNTIME_METHODS=\"['FS','cwrap']\"")
+  set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -s DEMANGLE_SUPPORT=1 -s ASSERTIONS=1")
+  set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -s DEMANGLE_SUPPORT=1 -s ASSERTIONS=1")
+
+  if (ASMJS)
+    set(TD_EMSCRIPTEN td_asmjs)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -s WASM=0 -Wno-almost-asm")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -s WASM=0 -Wno-almost-asm")
+  else()
+    set(TD_EMSCRIPTEN td_wasm)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -s WASM=1 -s ALLOW_MEMORY_GROWTH=1 -O2 -s EXPORTED_FUNCTIONS=\"['_main', '_square']\" -s EXPORT_NAME=\"'Diamond'\"")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -s WASM=1 -s ALLOW_MEMORY_GROWTH=1 -O2 -s EXPORTED_FUNCTIONS=\"['_main', '_square']\" -s EXPORT_NAME=\"'Diamond'\"")
+    SET(CMAKE_EXECUTABLE_SUFFIX ".html")
+  endif()
+endif()
+
 IF(STATIC_LIBSTDC++)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -static-libstdc++")
 endif()
@@ -28,7 +50,7 @@ if (${CMAKE_CXX_COMPILER_ID} STREQUAL MSVC)
 else()
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11")
 endif()
-
+  
 if(SSSE3)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mssse3")
   if(POPCNT)
@@ -37,14 +59,17 @@ if(SSSE3)
 elseif(CMAKE_BUILD_MARCH)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=${CMAKE_BUILD_MARCH}")
 else()
-  include(CheckCXXCompilerFlag)
-  CHECK_CXX_COMPILER_FLAG("-march=native" COMPILER_SUPPORTS_MARCHNATIVE)
-  if(COMPILER_SUPPORTS_MARCHNATIVE)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native")
-  endif()
+#  include(CheckCXXCompilerFlag)
+#  CHECK_CXX_COMPILER_FLAG("-march=native" COMPILER_SUPPORTS_MARCHNATIVE)
+#  if(COMPILER_SUPPORTS_MARCHNATIVE)
+#    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native")
+#  endif()
 endif()
 
-find_package(ZLIB REQUIRED)
+if (NOT ZLIB_FOUND)
+  find_package(ZLIB)
+endif()
+
 find_package(Threads REQUIRED)
 
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
@@ -59,7 +84,7 @@ endif()
 
 include_directories(
   "${CMAKE_SOURCE_DIR}/src"
-  "${ZLIB_INCLUDE_DIR}")
+  )
 
 add_executable(diamond src/run/main.cpp
   src/basic/config.cpp

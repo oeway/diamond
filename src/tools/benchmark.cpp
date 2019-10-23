@@ -3,7 +3,11 @@
 #include "../basic/sequence.h"
 #include "../basic/score_matrix.h"
 #include "../dp/score_vector.h"
+
+#ifdef __SSE2__
 #include "../util/simd/transpose.h"
+#endif
+
 #include "../dp/swipe/swipe.h"
 #include "../dp/dp.h"
 
@@ -15,7 +19,9 @@ using std::list;
 
 namespace Benchmark {
 
+#ifdef __SSE2__
 __m128i global_128;
+#endif
 int global_int;
 
 int xdrop_window2(const Letter *query, const Letter *subject)
@@ -78,6 +84,7 @@ void benchmark_ungapped(const sequence &s1, const sequence &s2)
 	cout << "Scalar ungapped extension:\t" << (double)time_span.count() / (n*40) * 1000 << " ps/Cell" << endl;
 }
 
+#ifdef __SSE2__
 void benchmark_ungapped_sse(const sequence &s1, const sequence &s2)
 {
 	static const size_t n = 100000000llu;
@@ -110,6 +117,7 @@ void benchmark_transpose() {
 	cout << "Matrix transpose 16x16 bytes:\t" << (double)duration_cast<std::chrono::nanoseconds>(high_resolution_clock::now() - t1).count() / (n * 256) * 1000 << " ps/Letter" << endl;
 }
 
+
 void swipe_cell_update() {
 	static const size_t n = 1000000000llu;
 	high_resolution_clock::time_point t1 = high_resolution_clock::now();
@@ -132,7 +140,7 @@ void swipe_cell_update() {
 	}
 	cout << "SWIPE cell update (int8_t):\t" << (double)duration_cast<std::chrono::nanoseconds>(high_resolution_clock::now() - t1).count() / (n * 16) * 1000 << " ps/Cell" << endl;
 }
-
+#endif
 void swipe(const sequence &s1, const sequence &s2) {
 	sequence target[16];
 	std::fill(target, target + 16, s2);
@@ -168,9 +176,11 @@ void benchmark() {
 	s2 = sequence::from_string("erlvelvtmmgdqgelpiamalanvvpcsqwdelarvlvtlfdsrhllyqllwnmfskeveladsmqtlfrgnslaskimtfcfkvygatylqklldpllrivitssdwqhvsfevdptrlepsesleenqrnllqmtekffhaiissssefppqlrsvchclyqvvsqrfpqnsigavgsamflrfinpaivspyeagildkkpppiierglklmskilqsianhvlftkeehmrpfndfvksnfdaarrffldiasdcptsdavnhslsfisdgnvlalhrllwnnqekigqylssnrdhkavgrrpfdkmatllaylgppe");
 	
 	Benchmark::benchmark_ungapped(s1, s2);
+	#ifdef __SSE2__
 	Benchmark::benchmark_ungapped_sse(s1, s2);
 	Benchmark::benchmark_transpose();
 	Benchmark::swipe_cell_update();
+	#endif
 	Benchmark::swipe(s1, s2);
 	Benchmark::banded_swipe(s1, s2);
 }

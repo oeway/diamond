@@ -21,6 +21,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "../score_vector.h"
 #include "../../basic/value.h"
+#include <wasm_simd128.h>
 
 template<typename _sv>
 inline _sv cell_update(const _sv &diagonal_cell,
