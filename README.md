@@ -74,6 +74,14 @@ The output file here is specified with the `–o` option and named
     BLAST is 10, so by default the program will search a lot more
     stringently than BLAST and not report weak hits.
 
+
+Compile
+=======
+
+    $ mkdir build && cd build 
+    $ emconfigure cmake ..
+    $ make
+
 Support
 =======
 
